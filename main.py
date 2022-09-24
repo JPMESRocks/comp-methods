@@ -1,0 +1,1 @@
+print('I am a golf ball and I want to fly.')
