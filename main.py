@@ -16,8 +16,8 @@ prop_l=0.5*rho*A*c_l
 prop_d=0.5*rho*A*c_d
 
 #diff eq. parameters
-max_t=100000
-dt=0.01
+max_t=20
+dt=0.5
 ticks=int(max_t/dt)
 
 #initializing vector lists
@@ -33,7 +33,7 @@ sinarctan= lambda x: x/((1+x**2)**0.5)
 cosarctan= lambda x: (1+x**2)**-0.5
 
 
-t_space = np.linspace(0,max_t,max_t+1)
+t_space = np.linspace(0,max_t,ticks)
 
 #calculating position of golfball numerically step-by-step
 for i in range(len(t_space)-1):
@@ -45,7 +45,26 @@ for i in range(len(t_space)-1):
     
     r[0,i+1] = r[0,i] + v[0,i+1] * dt
     r[1,i+1] = r[1,i] + v[1,i+1] * dt
-    if r[1,i+1]<=0 and i>1:
+
+    plt.quiver(r[0,i+1], r[1,i+1], v[0,i+1], v[1,i+1], color='b', units='xy', scale=1)
+    if r[1,i+1] + v[1,i+1] * dt <=0 and i>1: # Either we stop the model just before it hits the ground or it goes through the ground briefly. I chose the former.
+        plt.title("Velocity vectors")
+        plt.ylabel("y")
+        plt.xlabel("x")
+        plt.show()
         break
-print(i)
-print(v[0,i])
+
+plt.plot(t_space, r[0]) # It plots 3x now instead of subplots cuz im lazy hf hf. Let's change this later into subplots.
+plt.ylabel("x")
+plt.xlabel("t")
+plt.show()
+
+plt.plot(t_space, r[1])
+plt.ylabel("y")
+plt.xlabel("t")
+plt.show()
+
+plt.plot(t_space, (a[0]**2 + a[1]**2)**0.5) # We plot the magnitude cuz idc about the individual directons.
+plt.ylabel("$|\vec{a}|$")
+plt.xlabel("t")
+plt.show()
