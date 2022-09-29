@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 print('I am a golf ball and I want to fly.')
 
 
-#Necessary constants (all in SI units)
+# Necessary constants (all in SI units)
 m=0.05
 r=0.02
 g=9.81
@@ -12,35 +12,35 @@ rho=1.2
 A= np.pi*r**2
 
 def golfball(theta: float =60, drag: bool = True, lift: bool = True):
-    #setting drag/lift
+    # setting drag/lift
     c_d=0.3 if drag else 0
     c_l=0.3 if lift else 0
 
     prop_l=0.5*rho*A*c_l
     prop_d=0.5*rho*A*c_d
 
-    #time-steps for the diff. eq.
+    # time-steps for the diff. eq.
     max_t=20
     dt=0.001
     ticks=int(max_t/dt)
 
-    #initializing vector lists
+    # initializing vector lists
     a=np.zeros((2,ticks)); v=np.zeros((2,ticks)); r=np.zeros((2,ticks))
     t_space = np.linspace(0,max_t,ticks)
 
-    #initial conditions. (change init angle here)
+    # initial conditions. (change init angle here)
     conv_theta=(np.pi/180)*theta
     init_v=60
     v[0,0]=init_v*np.cos(conv_theta); v[1,0]=init_v*np.sin(conv_theta)
     a[1,0]=-g
 
 
-    #helpful math functions
+    # helpful math functions
     sinarctan= lambda x: x/((1+x**2)**0.5)
     cosarctan= lambda x: (1+x**2)**-0.5
 
 
-    #calculating position of golfball numerically step-by-step
+    # calculating position of golfball numerically step-by-step
     for i in range(len(t_space)-1):
         a[0,i+1]= -((v[0,i]**2+v[1,i]**2)**0.5/m)*(prop_l*sinarctan(v[1,i]/v[0,i])+prop_d*cosarctan(v[1,i]/v[0,i]))
         a[1,i+1]= ((v[0,i]**2+v[1,i]**2)**0.5/m)*(prop_l*cosarctan(v[1,i]/v[0,i])-prop_d*sinarctan(v[1,i]/v[0,i]))-g
@@ -51,14 +51,14 @@ def golfball(theta: float =60, drag: bool = True, lift: bool = True):
         r[0,i+1] = r[0,i] + v[0,i+1] * dt
         r[1,i+1] = r[1,i] + v[1,i+1] * dt
 
-        if r[1,i+1] + v[1,i+1] * dt <=0 and i>1: #Stopping the calculations right before the ball hits the ground
+        if r[1,i+1] + v[1,i+1] * dt <=0 and i>1: # Stopping the calculations right before the ball hits the ground
             r[1,i+1]=0
             r[0,i+1]= r[0,i] + v[0,i+1] * dt
             break
-    #splicing the empty elements out 
+    # splicing the empty elements out 
     r=r[:,:i+2]; v=v[:,:i+1];a=a[:,:i+1]; t_space=t_space[:i+1] 
 
-    #Plotting trajectory and acceleration components
+    # Plotting trajectory and acceleration components
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15,4), constrained_layout=True)
 
     ax1.plot(r[0],r[1])
@@ -80,4 +80,13 @@ def golfball(theta: float =60, drag: bool = True, lift: bool = True):
     plt.show()
 
 
-golfball()
+# In each component of acceleration there is a jump in the first time step because of 
+# the initial condition being different(a_x=0, a_y=-g). This is just an artifact of our numerical method. 
+golfball(theta=60,drag=True,lift=True)
+
+# Interestingly, if we only disable drag. The non-linearity of the y-acceleration becomes more visible
+golfball(theta=60, drag=False, lift=True)
+
+golfball(theta=60, drag=True, lift=False)
+
+golfball(90,False)
