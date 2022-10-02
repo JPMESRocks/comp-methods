@@ -57,7 +57,7 @@ def golfball(theta: float =60, drag: bool = True, lift: bool = True):
             break
     # splicing the empty elements out 
     r=r[:,:i+2]; v=v[:,:i+1];a=a[:,:i+1]; t_space=t_space[:i+1] 
-
+    print(a)
     # Plotting trajectory and acceleration components
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15,4), constrained_layout=True)
 
@@ -87,6 +87,17 @@ golfball(theta=60,drag=True,lift=True)
 # Interestingly, if we only disable drag. The non-linearity of the y-acceleration becomes more visible
 golfball(theta=60, drag=False, lift=True)
 
-golfball(theta=60, drag=True, lift=False)
+# For the ball being shot straight up (theta=90), the trajectory is correct and makes sense. However, the acceleration graphs behave very weirdly, forming a solid triangle.
+# When looking at the values of the acceleration themselves, the drag+lift seem to oscillate between positive and negative values in each acceleration component.
 
-golfball(90,False)
+# I believe this occurs because these forces depend on the ball's velocity, who's x-component is initially zero. In the first step, lift pushes the ball into a negative x-velocity,
+# As soon as this occurs, that negative x-velocity causes a stronger drag force pushing it in the +x direction bringing it back to around 90 degrees. This occurs over and over
+# until eventually the lift dominates at 6s and the ball falls around x=-1.7m.
+golfball(theta=90,drag=True,lift=True)
+
+# Same thing, different angle. Everything lookin good.
+golfball(theta=20,drag=True,lift=True)
+
+# shooting the golfball parallel to the ground at the ground provides the expected result considering our loop's stop statement. The loop iterates once
+# until it realizes the ball is on the ground and stops.
+golfball(theta=0,drag=True,lift=True)
