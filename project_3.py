@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import statistics
-import scipy
+import scipy.optimize
+import random
 
-from least_squares import least_squares # the other file named "least_squares.py" that I shoved the function in.
+from least_squares import res # the other file named "least_squares.py" that I shoved the function in.
 
 # https://radzion.com/blog/probability/method
 # https://numpy.org/doc/stable/reference/random/generated/numpy.random.exponential.html
@@ -21,8 +22,8 @@ def k_moment(data, k=1):
     return (1/n)*sum
 
 #Generating the two random datasets of exponential distributions (lambda=10,lambda=50)
-s1 = np.random.exponential((1/10),200)
-s2 = np.random.exponential((1/50),200)
+s1 = np.random.exponential((1/10),1000)
+s2 = np.random.exponential((1/50),1000)
 #mixing data sets
 s = np.append(s1, s2)
 
@@ -36,9 +37,9 @@ s = np.append(s1, s2)
 lambda1=(m1+np.sqrt(0.5*m2-m1**2))**(-1)
 lambda2=(m1-np.sqrt(0.5*m2-m1**2))**(-1)
 
-bins = [5,10,50,100] # Amount of bins used for the histogram. Given in the exercise.
+bins = [5,10,50, 100] # Amount of bins used for the histogram. Given in the exercise.
 
-# Our fit function that we use everywhere; a=lambda1.
+# Our fit function that we use everywhere; a=lambda1, b=lambda2.
 f = lambda x,a, b: 0.5*(a*np.exp(-a*x) + b*np.exp(-b*x))
 
 def compare_fit(x, fit_y, method: str=""):
@@ -59,14 +60,24 @@ print(rf"From applying the method of moments on this randomly generated exponent
 
 x= np.linspace(0,1,100)
 
-# n= values of the histogram which we need to have for the least squares method.
+# hist= values of the histogram which we need to have for the least squares method.
 # To fit through the histogram you wanna have the values of the histogram :D
-# n[0] is the y values and n[1] is the x values. Source: trust me bro
-n = compare_fit(x, f(x, lambda1, lambda2), "Method of moments")  
+hist = compare_fit(x, f(x, lambda1, lambda2), "Method of moments")
+hist_values = hist[0]
+bin_edges = hist[1]
 
-x = np.linspace(0,1, len(n[0])) # the length of the last n[0] so that will be the last value in the "bins" array. This length actually matters now.
-a,b = least_squares(f, x, n[0], [1,101], 1000) # Since the interval for both a and b starts at 1, we are using (1,1) as starting parameters
+i_nonzero = hist[0] !=0 # You don't wanna take places into account where the histogram is 0
+x = np.linspace(0,1, len(hist[0][i_nonzero]))
 
-print(f"Least squares gives lambda1={a} & lambda2={b}")
+yerr = [1 for i in range(len(hist[0][i_nonzero]))]
+result = scipy.optimize.least_squares(res, [10,50], args=(f,bin_edges, hist_values[i_nonzero], yerr), bounds=(1,100))
+print(f"Least squares without uncertainty gives lambda1={result.x[0]} & lambda2={result.x[1]}")
+compare_fit(x, f(x,result.x[0],result.x[1]), "Least squares - No uncertainties")
+print(result)
 
-compare_fit(x, f(x,a,b), "Least squares")
+# # Let's care about statistical uncertainties now.
+yerr = np.sqrt(hist[0][i_nonzero]) # The formula for chisquared now is (O-E)^2/E but the E (expected value) is squared in the formula we wrote so here we compensate for that.
+result = scipy.optimize.least_squares(res, [10,50], args=(f,bin_edges, hist_values[i_nonzero], yerr))
+print(f"Least squares with uncertainty gives lambda1={result.x[0]} & lambda2={result.x[1]}")
+
+compare_fit(x, f(x,result.x[0],result.x[1]), "Least squares - With uncertainties")
