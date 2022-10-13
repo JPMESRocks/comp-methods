@@ -2,10 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import statistics
 import scipy
-# import seaborn as sns
-# from statsmodels import api
-# from scipy import stats
-# from scipy.optimize import minimize 
 
 # https://radzion.com/blog/probability/method
 # https://numpy.org/doc/stable/reference/random/generated/numpy.random.exponential.html
@@ -36,24 +32,19 @@ print(m1)
 print(m2)
 print((m2/2 - m1**2))
 # Using the formulas we derived:
-lambda1=-(m2/m1-4*m1)**(-1)+(np.sqrt(2*m2-7*m1**2)/(m2-4*m1**2))
-lambda2=-(m2/m1-4*m1)**(-1)-(np.sqrt(2*m2-7*m1**2)/(m2-4*m1**2))
+lambda1=(m1+np.sqrt(0.5*m2-m1**2))**(-1)
+lambda2=(m1-np.sqrt(0.5*m2-m1**2))**(-1)
 
-print((lambda1,lambda2))
-
-# plt.hist(s1,label=r"$\lambda=10$",alpha=0.5)
-# plt.hist(s2,label=r"$\lambda=50$",alpha=0.5)
-# plt.hist(s1+s2,label="Sum of both",alpha=0.5, color="purple")
-
+print(rf"From applying the method of moments on this randomly generated exponential mixed dataset we obtain: lambda_1={lambda1} lambda_2={lambda2}")
 bins = [5,10,50,100]
+fig,ax=plt.subplots(1, 4, figsize=(15,4), constrained_layout=True)
+for k,i in enumerate(bins):
+    n = ax[k].hist(s, i, [0,1],color='purple')
+fig.suptitle("Histograms of mixed data")
+# plt.show()
 
-for i in bins:
-    plt.hist(s, bins=i)
-    # plt.show()
-
-plt.legend()
-plt.xlabel("time (s)")
-plt.ylabel("counts")
+# Method of least squares, a=lambda1, b=lambda2
+f = lambda x,a, b: 0.5*(a*np.exp(-a*x) + b*np.exp(-b*x))
 
 def chi_s(f, a, b, x, y, yerr):
     """
@@ -74,10 +65,10 @@ def chi_s(f, a, b, x, y, yerr):
     prediction = [f(x_val,a,b) for x_val in x]
     result = 0
     for i in range(0, len(y)):
-        result += ((y[i] - prediction[i])/yerr[i])**2
+        result += ((y[i] - prediction[i])**2/prediction[i])
     return result
-    
-def least_squares(f, x, y, yerr, interval,interval2, acc):
+
+def least_squares(f, x, y, yerr, interv, interv2, acc):
     """
 
     Calculates the optimal parameters a & b for funtion f to fit on certain dataset using the chi squared test.
@@ -90,8 +81,8 @@ def least_squares(f, x, y, yerr, interval,interval2, acc):
             x       (array-like)                Dataset of x values
             y       (array-like)                Dataset of corresponding y values
             yerr    (array-like)                Dataset containing the corresponding error in those y values
-            interv  (array-like of size 2)      a will be determined on this interval
-            interv2 (array-like of size 2)      b will be determined on this interval
+            interv  (array-like of size 2)      a will be determined between this interval
+            interv2 (array-like of size 2)      b will be determined between this interval
             acc     (int)                       Accuracy of the test. The space of the interval will be divided into this many parts to perform the test on.
     Returns:
             a, b    (floats)                    The parameters of f for optimal fit through the dataset
@@ -99,7 +90,7 @@ def least_squares(f, x, y, yerr, interval,interval2, acc):
     """
     # We use a meshgrid because it's way way faster and simpler than a nested for-loop. 
     # TECHNICALLY this still loops over the interval and stores it in a square array, satisfying the exercise.
-    av,bv = np.meshgrid(np.linspace(interval[0], interval[1], acc),np.linspace(interval2[0], interval2[1], acc), indexing='xy')
+    av,bv = np.meshgrid(np.linspace(interv[0], interv[1], acc),np.linspace(interv2[0], interv2[1], acc), indexing='xy')
     chisquared = chi_s(f, av, bv, x, y, yerr)
     # Get the index containing the lowest chisquared value. We have to unravel because np.argmin flattens the whole 2d array.
     index = np.unravel_index(np.argmin(chisquared),chisquared.shape)
@@ -107,14 +98,16 @@ def least_squares(f, x, y, yerr, interval,interval2, acc):
     b = bv[index]
     return a,b
 
-# lambda1=a, lambda2 = b
-f = lambda x,a,b: a*np.exp(-b*x)
-
 x = np.linspace(0,1, len(s))
-a, b = least_squares(f, x, s, np.zeros(len(s)), [0,1], [10,50], 100)
-print(a,b)
+a,b = least_squares(f, x, n, np.zeros(len(s)), [8,60], [8, 60], len(s))
+# print(a,b)
+print(f"Least squares: {a,b}")
 
+for i in bins:
+    plt.hist(s, bins=i, density=True)
+    plt.plot(x, f(x, a, b))
+    plt.show()
 
-#Maximum likelihood method
-#s is the data set
-#general formula is 
+plt.legend()
+plt.xlabel("time (s)")
+plt.ylabel("counts")
