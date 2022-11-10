@@ -1,0 +1,59 @@
+All feats:
+test:  15 10874.5
+train:  1 10878.0
+
+
+k=15 (5 feats)
+E is excluded:useless
+train: 10810.5, test: 10869.5
+
+NrHits is excluded:
+train: 10860.5, test: 10819.5
+
+E9E25 is excluded:useless
+train: 10809.5, test: 10870.5
+
+Z20 is excluded:
+train: 10855.0, test: 10825.0
+
+LatMom is excluded:
+train: 10904.5, test: 10775.5
+
+
+All 3 best feats:
+test:  15 10897.0
+train:  11 10874.5
+
+k=15 (3 feats)
+NrHits is excluded:useless
+train: 10860.5, test: 10819.5
+
+Z20 is excluded:
+train: 10871.5, test: 10808.5
+
+LatMom is excluded:
+train: 10897.5, test: 10782.5
+
+
+best-k, varying Ks
+
+
+E is excluded:
+test:  9 10866.0
+train:  13 10890.5
+
+NrHits is excluded:
+test:  15 10884.0
+train:  11 10896.0
+
+E9E25 is excluded:
+test:  13 10868.5
+train:  15 10900.5
+
+Z20 is excluded:
+test:  15 10884.0
+train:  11 10896.0
+
+LatMom is excluded:
+test:  17 10868.0
+train:  19 10893.5
